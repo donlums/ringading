@@ -1,43 +1,37 @@
-# Ringading · Blink doorbell chime for Android TV
-
-**Pix91 edition · v0.4.2**
+# Ringading — Blink doorbell chime for Android TV
 
 **Developed by Pix91**
 
-Ringading adds a chime and visitor notification to a compatible Android TV, without a phone companion.
+Ringading makes your compatible Android TV play a configurable chime when your Blink doorbell is pressed, without a phone companion or Home Assistant.
 
-## v0.4 Live View Preview (experimental)
+## Features
 
-- All v0.3 features: remote-first dashboard, 4/8/12-second chime, volume settings, visitor pop-up
-- **Watch live camera** button on Home
-- Discover doorbells using your Blink account session (no second login within this install)
-- Request Blink's live-view session and decode proprietary IMMIS framing on the TV
-- Serve its MPEG-TS media to the TV player over a **loopback-only** local connection
-- Full-screen picture and audio using Android Media3 ExoPlayer
-- 35-second test-session cap, with close/Back stopping playback
-- No phone, Home Assistant, extra hardware, remote proxy or recording
+- TV-friendly navigation, chime volume, 4/8/12-second doorbell sounds and a visitor alert
+- Optional “Someone is at your door” banner
+- Blink sign-in with locally encrypted credentials
+- **Watch live camera**: experimental on-device doorbell discovery and a direct Blink IMMIS transport bridge to a TV video player
+- A 35-second limit on test video sessions; no cloud recording or external video proxy
 
-### Limitations
+## Live camera testing
 
-**Live playback is unverified.** The code compiles, but it must be tested against your actual Blink doorbell. Some cameras use alternative `rtsps://` transport, which is not supported by this preview. Other models may use an SSL setup or stream handshake that this prototype cannot yet decode.
+The live-video feature has compiled and passed automated Android tests, **but actual Blink camera playback has not yet been verified**. The current prototype supports Blink's `immis://` transport, not `rtsps://`. Live View may be unavailable in Event Response mode or when the camera is asleep or busy.
 
-**Original Blink Video Doorbell (1st Gen) Event Response mode:** Blink generally only permits Live View through recent event notifications within 60 seconds if it is not paired with a Sync Module or compatible wiring. Manual viewing may therefore fail. See [Blink Event Response support](https://support.blinkforhome.com/en_US/event-response).
+## Installation and signing
 
-For safety, v0.4 has a separate package `uk.co.pix91.ringading.pixpreview`. It **cannot and will not replace the working v0.3 or original v0.1 app**, so connecting Blink again is necessary for this preview. The existing installed chime remains untouched.
+The Pix91 Android application ID is `uk.co.pix91.ringading`. This is **different** from earlier test editions and the original app. Installing it will not erase those separate installations, but you must sign in to Blink again to use this package.
 
-## Build
+The automatic GitHub Actions debug APK uses a temporary signing certificate. It is **not** a permanent in-place update channel; every main-app release intended to update users must instead use the existing permanent release-signing workflow, with its private secret configured. Do not uninstall a working copy of Ringading until you are ready to migrate.
+
+To build the Android app with JDK 17 and SDK 35:
 
 ```sh
 ./gradlew :app:testDebugUnitTest :app:assembleDebug
 ```
 
-Public GitHub Actions provides build artifacts on changes to main. Keep account credentials, callback URLs and live-view session URLs private, including in bug reports. The loopback HTTP exception in the app's network security configuration applies only to 127.0.0.1.
+Build artifacts are available in [GitHub Actions](https://github.com/donlums/ringading/actions). On-screen test alert controls do not send real doorbell events.
 
-## Protocol references
+## Security and disclaimer
 
-Protocol research draws on [BlinkPy](https://github.com/fronzbot/blinkpy) and [Blink Live View Proxy](https://github.com/Teethree89/ha-blink-live-view-proxy). Both are MIT-licensed community projects. Ringading is unofficial and not affiliated with Blink, Amazon or Google. It should not be your only doorbell alert.
+Never share Blink passwords, MFA codes, camera URLs, OAuth callbacks, session tokens or notification payloads.
 
-
-### Pix91 branding
-
-The Android application ID and all Java source packages are now under `uk.co.pix91.ringading`, with the debug preview using `uk.co.pix91.ringading.pixpreview`. This makes the Pix91 APK a new installation, not an in-place upgrade from the original package. Existing installations and their Blink sessions are not changed; users must sign in separately in the newly branded preview. The visible developer credit is **Developed by Pix91**.
+This is an independent community project and is not affiliated with Blink, Amazon or Google. Its cloud integration is unofficial and could change without notice. Ringading should not be your only doorbell alert until tested on your own device. Protocol research references [BlinkPy](https://github.com/fronzbot/blinkpy) and [Blink Live View Proxy](https://github.com/Teethree89/ha-blink-live-view-proxy); respect their MIT notices when reusing code.

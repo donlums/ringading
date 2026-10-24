@@ -223,9 +223,9 @@ public final class MainActivity extends Activity {
         actions.addView(ring, half);
         actions.addView(button("Watch live camera", false, () -> startActivity(new Intent(this, LiveViewActivity.class))),
                 new LinearLayout.LayoutParams(0, dp(55), 1));
-        LinearLayout.LayoutParams previewParams=new LinearLayout.LayoutParams(0, dp(55), 1);
-        previewParams.leftMargin=dp(13);
-        actions.addView(button("Preview door alert", false, this::previewAlert), previewParams);
+        LinearLayout.LayoutParams alertParams=new LinearLayout.LayoutParams(0, dp(55), 1);
+        alertParams.leftMargin=dp(13);
+        actions.addView(button("Test door alert", false, this::showTestAlert), alertParams);
         hero.addView(actions);
         host.addView(hero, margins(-1, -2, 16));
 
@@ -313,7 +313,7 @@ public final class MainActivity extends Activity {
         } else {
             addText(pop, "Pop-up permission granted", 13, MINT, true, 12);
         }
-        action(pop, "Preview on-screen alert", true, this::previewAlert, 0);
+        action(pop, "Show test alert", true, this::showTestAlert, 0);
         row.addView(pop, new LinearLayout.LayoutParams(0, -2, 1));
         host.addView(row, margins(-1, -2, 15));
         addText(host, "The TV's physical volume still controls the maximum loudness. "
@@ -362,7 +362,7 @@ public final class MainActivity extends Activity {
         LinearLayout panel = card();
         addText(panel, "Ringading", 30, WHITE, true, 9);
         addText(panel, "Developed by Pix91", 18, MINT, true, 18);
-        addText(panel, "Version 0.4 live-view preview · Android TV", 15, WHITE, false, 13);
+        addText(panel, "Version 0.4.3 · Android TV", 15, WHITE, false, 13);
         addText(panel, "A phone-free chime for your Blink video doorbell. "
                 + "It rings when Blink sends a doorbell button-press event to your TV. "
                 + "Not affiliated with Blink, Amazon or Google.", 15, MUTED, false, 15);
@@ -376,7 +376,7 @@ public final class MainActivity extends Activity {
         prefs.edit().putInt("volume", next).apply();
         render();
     }
-    private void previewAlert() {
+    private void showTestAlert() {
         if (DoorbellOverlay.canShow(this)) {
             DoorbellOverlay.show(this);
             return;
@@ -388,7 +388,7 @@ public final class MainActivity extends Activity {
                 .setPositiveButton("OK", null).show();
     }
     private void requestOverlayPermission() {
-        if (Settings.canDrawOverlays(this)) { previewAlert(); return; }
+        if (Settings.canDrawOverlays(this)) { showTestAlert(); return; }
         try {
             startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName())));

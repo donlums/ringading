@@ -102,7 +102,7 @@ public final class LiveViewActivity extends Activity {
                     if(finishing)return;
                     watch.setEnabled(true);
                     if(options.isEmpty()) {
-                        report("No compatible doorbell found. Ensure Blink is connected in this preview.");
+                        report("No compatible doorbell found. Connect your Blink account in Ringading.");
                         return;
                     }
                     String[] names=new String[options.size()];

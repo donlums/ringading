@@ -13,8 +13,8 @@ android {
         applicationId 'uk.co.pix91.ringading'
         minSdk 26
         targetSdk 34
-        versionCode 7
-        versionName '0.4.2'
+        versionCode 8
+        versionName '0.4.3'
         manifestPlaceholders = [appLabel: 'Ringading']
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -35,9 +35,9 @@ android {
     }
     buildTypes {
         debug {
-            // Preview never replaces the currently installed and working v0.1 app.
-            applicationIdSuffix '.pixpreview'
-            manifestPlaceholders = [appLabel: 'Ringading Pix91 Preview']
+            // This Pix91 application has its own package ID, separate from previous test editions.
+            // Debug signing is temporary. Signed releases require the stable release key.
+            manifestPlaceholders = [appLabel: 'Ringading']
         }
         release {
             minifyEnabled false

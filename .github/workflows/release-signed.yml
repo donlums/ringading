@@ -57,7 +57,7 @@ jobs:
       - name: Upload signed Ringading update APK
         uses: actions/upload-artifact@v4
         with:
-          name: Ringading-v0.4.2-main-Pix91-signed
+          name: Ringading-v0.4.3-main-Pix91-signed
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
