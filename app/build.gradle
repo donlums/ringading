@@ -7,8 +7,9 @@ android {
         applicationId 'uk.co.lumsdon.ringading'
         minSdk 26
         targetSdk 34
-        versionCode 2
-        versionName '0.1.1-alpha'
+        versionCode 3
+        versionName '0.2.0-beta'
+        manifestPlaceholders = [appLabel: 'Ringading']
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     compileOptions {
@@ -16,6 +17,12 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     buildTypes {
+        debug {
+            // Side-by-side beta to preserve the previously working v0.1 APK.
+            // Ephemeral GitHub debug signatures cannot update that install in place.
+            applicationIdSuffix '.beta'
+            manifestPlaceholders = [appLabel: 'Ringading Beta']
+        }
         release { minifyEnabled false }
     }
     packaging { resources { excludes += ['/META-INF/{AL2.0,LGPL2.1}'] } }

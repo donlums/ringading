@@ -2,42 +2,37 @@
 
 **Developed by Lumsdon**
 
-Ringading is an experimental Android TV app intended to sound a chime on a Chromecast with Google TV when a Blink Video Doorbell is pressed, without a phone or Home Assistant.
+Standalone Android TV experimental chime for Blink Video Doorbell owners. No phone companion is required.
 
-## Status
+## Latest: v0.2.0 beta
 
-**Experimental alpha — NOT validated as a working doorbell chime.** The source includes a TV interface, local test sound, Blink OAuth investigation, Firebase push registration and an event classifier for `category=media` + `event_type=button_press`. The app has **not** been built into an APK or tested end-to-end against Blink on a Chromecast.
+- **Louder, fuller two-note ding-dong** routed through your TV's media volume.
+- Adjustable **4, 8 (default), or 12-second** ring with repeated pairs.
+- Chime volume from **0–100% (default 100%)** of the TV's media output, with soft limiting to prevent digital clipping.
+- Optional **“Someone is at your door”** on-screen banner over other apps for approximately 9 seconds. Requires Android's **Display over other apps** special permission, if your TV supports it.
+- Normal high-priority doorbell notification remains a fallback.
+- Blink cloud connection unchanged; already working users can compare behaviours.
 
-**Major limitation:** The community Linux receiver [Blink Live Events](https://github.com/CoreyHayward/ha-blink-live-events) works with a Blink Android app identity using an independent MCS client. Android's Firebase SDK in our separately signed app might be rejected by Blink/Firebase; successful event delivery **is not established**. Embedded Blink sign-in may also be restricted. If direct FCM registration fails, the next step is to port the tested MCS receiver to Android. This project does not use a phone.
+**Important installation note:** The free GitHub runner changes Android debug signing keys on each job. Instead of forcing you to uninstall the original working build, v0.2.0-beta debug APK uses Android package `uk.co.lumsdon.ringading.beta`, allowing it to install **alongside** the original Ringading. It has separate data and needs its own Blink login/association to ring on real events. Disable pop-ups or sign out of one app to avoid duplicate chimes when both receive an event. A stable production release-signing key has not yet been set up.
 
-## Features under development
+## Build on Windows
 
-- Designed for Chromecast with Google TV 4K and Android TV (remote-controlled UI)
-- Custom Ding-Dong test chime and volume
-- Blink-hosted OAuth / PKCE account flow (experimental)
-- Locally protected session and push identifiers in Android Keystore
-- Doorbell button presses filtered separately from motion events
-- Notification and time of latest press
-- Branding: **Ringading** / **Developed by Lumsdon**
+Open this Gradle project in Android Studio (JDK 17, SDK 35). Run:
 
-## Building
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
+```
 
-Requires Windows/macOS/Linux with Android Studio, Android SDK 35 and Java 17+. Open the project in Android Studio, then run `gradlew.bat :app:assembleDebug` on Windows or `./gradlew :app:assembleDebug` on macOS/Linux. After an actual successful build, APK is at `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK is at `app/build/outputs/apk/debug/app-debug.apk`. The repository also builds APK artifacts using free runners for public repositories on each source change.
 
-No CI workflow is included: this repository does **not** consume GitHub Actions build minutes.
+## Blink connection limitations
 
-## Privacy / security
+This app uses an unofficial Blink cloud/Firebase approach based on [CoreyHayward's Blink Live Events](https://github.com/CoreyHayward/ha-blink-live-events). Receiving real presses depends on Blink accepting the independent Android app identity and notifying it. It may stop working after vendor-side changes. Motion events do not trigger the chime.
 
-Use only your own Blink account and doorbell. **Never post access tokens, refresh tokens, OAuth callback URLs, FCM tokens, Blink passwords, MFA codes or raw event payloads.** See [SECURITY.md](SECURITY.md). Runtime credentials are never committed.
+## Privacy
 
-## Licensing
-
-No licence has been chosen yet. A public GitHub repository alone does not grant reuse rights.
+Never share Blink passwords, MFA codes, OAuth callback URLs, session tokens, or notification payloads. See [SECURITY.md](SECURITY.md).
 
 ## Disclaimer
 
-Unofficial independent project, not affiliated with or endorsed by Blink, Amazon, Google or Home Assistant.
-
-## Implementation note (public GitHub edition)
-
-The GitHub version contains the same application logic with **Android vector XML** launcher art instead of PNG files and **programmatically synthesised ding-dong audio** instead of a binary WAV. The official Gradle 8.9 wrapper has been checked in, with its distribution checksum; the Windows command is `gradlew.bat :app:assembleDebug`. The `Developed by Lumsdon` credit appears on the TV home screen and About panel. All Blink login and push functionality is **unverified on real hardware**; no APK has been built here.
+Independent community project not affiliated with Blink, Amazon, Google, or Home Assistant. Public repository; no redistribution licence selected yet.

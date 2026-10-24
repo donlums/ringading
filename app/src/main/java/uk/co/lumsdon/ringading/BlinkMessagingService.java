@@ -28,6 +28,7 @@ public final class BlinkMessagingService extends FirebaseMessagingService {
                 Status.write(this, "Doorbell pressed — " + new java.text.SimpleDateFormat("HH:mm:ss",
                     java.util.Locale.UK).format(new java.util.Date(now)));
                 BellPlayer.ring(this);
+                DoorbellOverlay.show(this);
                 notifyBell();
             }
         } else {
@@ -49,7 +50,7 @@ public final class BlinkMessagingService extends FirebaseMessagingService {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification note = new Notification.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Ringading · Someone’s at the door")
+            .setContentTitle("Ringading · Someone is at your door")
             .setContentText("Blink doorbell button pressed")
             .setAutoCancel(true)
             .setContentIntent(pi).build();

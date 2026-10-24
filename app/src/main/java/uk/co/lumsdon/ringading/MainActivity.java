@@ -13,6 +13,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.net.Uri;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -30,8 +32,8 @@ public final class MainActivity extends Activity {
     private static final int PANEL = Color.rgb(27, 39, 57);
     private static final int ACCENT = Color.rgb(117, 221, 179);
     private static final int MUTED = Color.rgb(155, 170, 186);
-    private TextView connection, status, volume, lastRing;
-    private Button connect;
+    private TextView connection, status, volume, lastRing, duration, popupStatus;
+    private Button connect, popupToggle;
     private final BroadcastReceiver changes = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) { refresh(); }
     };
@@ -121,7 +123,7 @@ public final class MainActivity extends Activity {
             BellPlayer.ring(this);
             Status.write(this, "Manual test sound played (not a Blink event)");
         }), lp(-1, 68, 18));
-        volume = label(this, "Volume: 80%", 18, Color.WHITE, true);
+        volume = label(this, "Volume: 100%", 18, Color.WHITE, true);
         addText(right, volume, 12);
         LinearLayout volRow = new LinearLayout(this);
         volRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -131,7 +133,36 @@ public final class MainActivity extends Activity {
         half.rightMargin = 12;
         volRow.addView(minus, half);
         volRow.addView(plus, new LinearLayout.LayoutParams(0,65,1));
-        right.addView(volRow);
+        right.addView(volRow, lp(-1, -2, 15));
+        duration = label(this, "Ring duration: 8 seconds", 18, Color.WHITE, true);
+        addText(right, duration, 9);
+        right.addView(button("Change duration (4 / 8 / 12 sec)", false, () -> {
+            var prefs = getSharedPreferences("visible_settings", MODE_PRIVATE);
+            int old = prefs.getInt("ring_seconds", ChimeSettings.DEFAULT_DURATION);
+            prefs.edit().putInt("ring_seconds", ChimeSettings.nextDuration(old)).apply();
+            refresh();
+        }), lp(-1, 65, 18));
+        addText(right, label(this, "ON-SCREEN DOORBELL ALERT", 13, ACCENT, true), 8);
+        popupStatus = label(this, "Pop-up requires permission", 15, MUTED, false);
+        addText(right, popupStatus, 12);
+        popupToggle = button("TV pop-up: ON", false, () -> {
+            var prefs = getSharedPreferences("visible_settings", MODE_PRIVATE);
+            prefs.edit().putBoolean("show_popup", !prefs.getBoolean("show_popup", true)).apply();
+            refresh();
+        });
+        right.addView(popupToggle, lp(-1, 65, 9));
+        right.addView(button("Allow display over other apps", false, this::requestOverlayPermission),
+            lp(-1, 65, 9));
+        right.addView(button("Preview: Someone is at your door", false, () -> {
+            if (DoorbellOverlay.canShow(this)) {
+                DoorbellOverlay.show(this);
+            } else {
+                new AlertDialog.Builder(this)
+                    .setTitle("Ringading TV pop-up")
+                    .setMessage("Switch TV pop-up ON, then allow Ringading Beta to display over other apps in Android TV settings. The regular notification is still available without this permission.")
+                    .setPositiveButton("OK", null).show();
+            }
+        }), lp(-1, 65, 0));
 
         LinearLayout activity = panel();
         content.addView(activity, lp(-1, -2, 12));
@@ -151,7 +182,7 @@ public final class MainActivity extends Activity {
         footer.addView(credit, new LinearLayout.LayoutParams(0, -2, 1));
         footer.addView(button("About Ringading", false, () -> new AlertDialog.Builder(this)
             .setTitle("Ringading")
-            .setMessage("Developed by Lumsdon\n\nVersion 0.1.1 alpha\n\nIndependent Android TV chime prototype for Blink doorbells. Not affiliated with or endorsed by Blink or Amazon. The Blink cloud connection must be tested on your TV before relying on it.")
+            .setMessage("Developed by Lumsdon\n\nVersion 0.2.0 beta\n\nIndependent Android TV chime prototype for Blink doorbells. Not affiliated with or endorsed by Blink or Amazon. The Blink cloud connection must be tested on your TV before relying on it.")
             .setPositiveButton("Close", null).show()), new LinearLayout.LayoutParams(220, 65));
         content.addView(footer, lp(-1, -2, 0));
         scroll.addView(content);
@@ -167,12 +198,32 @@ public final class MainActivity extends Activity {
         v.setBackground(background(PANEL, Color.rgb(47, 64, 85)));
         return v;
     }
+    private void requestOverlayPermission() {
+        if (Settings.canDrawOverlays(this)) {
+            new AlertDialog.Builder(this).setTitle("Already allowed")
+                .setMessage("Ringading already has permission to show a TV pop-up above other apps. Select Preview to test it.")
+                .setPositiveButton("OK", null).show();
+            return;
+        }
+        try {
+            startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getPackageName())));
+        } catch (Exception first) {
+            try {
+                startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
+            } catch (Exception second) {
+                new AlertDialog.Builder(this).setTitle("Permission settings unavailable")
+                    .setMessage("This Google TV version does not provide an in-app route to the display-over-other-apps permission. Check Settings > Apps > Special app access > Display over other apps, or use the standard Ringading notification.")
+                    .setPositiveButton("OK", null).show();
+            }
+        }
+    }
+
     private void changeVolume(int amount) {
         var prefs = getSharedPreferences("visible_settings", MODE_PRIVATE);
-        int level = Math.min(100, Math.max(0, prefs.getInt("volume", 80) + amount));
+        int level = Math.min(100, Math.max(0, prefs.getInt("volume", ChimeSettings.DEFAULT_VOLUME) + amount));
         prefs.edit().putInt("volume", level).apply();
         refresh();
-        BellPlayer.ring(this);
     }
     private void refresh() {
         if (connection == null) return;
@@ -182,8 +233,11 @@ public final class MainActivity extends Activity {
             : signedIn ? "Blink login saved — link pending" : "Not connected");
         connect.setText(signedIn ? "Reauthenticate Blink" : "Connect Blink account");
         status.setText(Status.read(this));
-        int level = getSharedPreferences("visible_settings", MODE_PRIVATE).getInt("volume", 80);
-        volume.setText("Volume: " + level + "%");
+        int level = getSharedPreferences("visible_settings", MODE_PRIVATE).getInt("volume", ChimeSettings.DEFAULT_VOLUME);
+        volume.setText("Chime volume: " + level + "% of TV media volume");
+        if (duration != null) duration.setText("Ring duration: " + ChimeSettings.duration(getSharedPreferences("visible_settings", MODE_PRIVATE).getInt("ring_seconds", ChimeSettings.DEFAULT_DURATION)) + " seconds");
+        if (popupToggle != null) popupToggle.setText(getSharedPreferences("visible_settings", MODE_PRIVATE).getBoolean("show_popup", true) ? "TV pop-up: ON" : "TV pop-up: OFF");
+        if (popupStatus != null) popupStatus.setText(Settings.canDrawOverlays(this) ? "Permission granted · Pop-up appears for 9 seconds" : "Permission needed · Allow display over other apps");
         long timestamp = getSharedPreferences("visible_settings", MODE_PRIVATE).getLong("last_ring_ms", 0);
         lastRing.setText(timestamp == 0 ? "No Blink button presses detected yet"
             : "Last real press: " + new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.UK).format(new Date(timestamp)));
