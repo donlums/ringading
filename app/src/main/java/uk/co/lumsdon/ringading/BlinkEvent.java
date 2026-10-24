@@ -20,7 +20,10 @@ public final class BlinkEvent {
             if (json == null) continue;
             try {
                 JSONObject obj = new JSONObject(json);
-                for (String key : obj.keySet()) result.put(key, obj.optString(key, ""));
+                for (java.util.Iterator<String> keys = obj.keys(); keys.hasNext();) {
+                    String key = keys.next();
+                    result.put(key, obj.optString(key, ""));
+                }
             } catch (Exception ignored) { }
         }
         result.putAll(input);
