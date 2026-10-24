@@ -1,43 +1,36 @@
-# Ringading · Android TV doorbell chime
+# Ringading · Blink doorbell chime for Android TV
 
 **Developed by Lumsdon**
 
-An Android TV doorbell chime for a Blink Video Doorbell, without a phone companion or Home Assistant. This is an unofficial independent project.
+Ringading adds a chime and visitor notification to a compatible Android TV, without a phone companion.
 
-## Features
+## v0.4 Live View Preview (experimental)
 
-- Remote-friendly TV dashboard with **Home**, **Chime & alerts**, **Blink connection**, and **About**.
-- High-contrast dark navy and amber design, larger focus states and TV-safe margins.
-- Quick access to a test chime and door-alert preview.
-- Louder ding-dong chime with adjustable **4, 8 or 12-second** duration and volume.
-- Optional **“Someone is at your door”** pop-up; requires permission to display over other apps.
-- Only doorbell button presses trigger alerts; motion events are ignored.
-- Blink sign-in and encrypted local session storage.
+- All v0.3 features: remote-first dashboard, 4/8/12-second chime, volume settings, visitor pop-up
+- **Watch live camera** button on Home
+- Discover doorbells using your Blink account session (no second login within this install)
+- Request Blink's live-view session and decode proprietary IMMIS framing on the TV
+- Serve its MPEG-TS media to the TV player over a **loopback-only** local connection
+- Full-screen picture and audio using Android Media3 ExoPlayer
+- 35-second test-session cap, with close/Back stopping playback
+- No phone, Home Assistant, extra hardware, remote proxy or recording
 
-## Installing Ringading
+### Limitations
 
-Download a test APK from the [GitHub Actions builds](https://github.com/donlums/ringading/actions/workflows/build-apk.yml).
+**Live playback is unverified.** The code compiles, but it must be tested against your actual Blink doorbell. Some cameras use alternative `rtsps://` transport, which is not supported by this preview. Other models may use an SSL setup or stream handshake that this prototype cannot yet decode.
 
-**The current preview installs separately from the original Ringading app**, allowing you to test the new interface without disturbing your existing Blink connection. The preview has its own settings and requires a separate Blink sign-in to receive live events.
+**Original Blink Video Doorbell (1st Gen) Event Response mode:** Blink generally only permits Live View through recent event notifications within 60 seconds if it is not paired with a Sync Module or compatible wiring. Manual viewing may therefore fail. See [Blink Event Response support](https://support.blinkforhome.com/en_US/event-response).
 
-Android requires matching app signatures for in-place updates. Keep the existing app installed until a compatible update or migration is available.
+For safety, v0.4 has a separate package `uk.co.lumsdon.ringading.livepreview`. It **cannot and will not replace the working v0.3 or original v0.1 app**, so connecting Blink again is necessary for this preview. The existing installed chime remains untouched.
 
-## Build from source
+## Build
 
-Open the project with Android Studio using JDK 17 and Android SDK 35.
-
-On Windows:
-
-```powershell
-.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
+```sh
+./gradlew :app:testDebugUnitTest :app:assembleDebug
 ```
 
-The resulting APK is in `app/build/outputs/apk/debug/`.
+Public GitHub Actions provides build artifacts on changes to main. Keep account credentials, callback URLs and live-view session URLs private, including in bug reports. The loopback HTTP exception in the app's network security configuration applies only to 127.0.0.1.
 
-## Privacy and disclaimer
+## Protocol references
 
-Never share Blink passwords, verification codes, OAuth callback URLs, session tokens or notification payloads.
-
-Blink cloud notifications use an unofficial integration and may change. Ringading should not be your only doorbell alert until thoroughly tested on your device. TV overlay support varies by device and streaming app.
-
-Reference: [Blink Live Events by CoreyHayward](https://github.com/CoreyHayward/ha-blink-live-events). Ringading is not affiliated with Blink, Amazon, Google or Home Assistant.
+Protocol research draws on [BlinkPy](https://github.com/fronzbot/blinkpy) and [Blink Live View Proxy](https://github.com/Teethree89/ha-blink-live-view-proxy). Both are MIT-licensed community projects. Ringading is unofficial and not affiliated with Blink, Amazon or Google. It should not be your only doorbell alert.

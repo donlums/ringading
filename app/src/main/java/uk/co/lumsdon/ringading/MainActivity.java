@@ -196,7 +196,7 @@ public final class MainActivity extends Activity {
         LinearLayout foot = horizontal();
         TextView credit = text("Developed by Lumsdon", 12, MUTED, true);
         foot.addView(credit, new LinearLayout.LayoutParams(0, -2, 1));
-        foot.addView(text("RINGADING  ·  v0.3  ·  ANDROID TV", 11, MUTED, false));
+        foot.addView(text("RINGADING  ·  v0.4  ·  ANDROID TV", 11, MUTED, false));
         host.addView(foot, margins(-1, dp(34), 0));
     }
     private void home() {
@@ -221,8 +221,11 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams half = new LinearLayout.LayoutParams(0, dp(55), 1);
         half.rightMargin = dp(13);
         actions.addView(ring, half);
-        actions.addView(button("Preview door alert", false, this::previewAlert),
+        actions.addView(button("Watch live camera", false, () -> startActivity(new Intent(this, LiveViewActivity.class))),
                 new LinearLayout.LayoutParams(0, dp(55), 1));
+        LinearLayout.LayoutParams previewParams=new LinearLayout.LayoutParams(0, dp(55), 1);
+        previewParams.leftMargin=dp(13);
+        actions.addView(button("Preview door alert", false, this::previewAlert), previewParams);
         hero.addView(actions);
         host.addView(hero, margins(-1, -2, 16));
 
@@ -359,7 +362,7 @@ public final class MainActivity extends Activity {
         LinearLayout panel = card();
         addText(panel, "Ringading", 30, WHITE, true, 9);
         addText(panel, "Developed by Lumsdon", 18, MINT, true, 18);
-        addText(panel, "Version 0.3 preview · Android TV", 15, WHITE, false, 13);
+        addText(panel, "Version 0.4 live-view preview · Android TV", 15, WHITE, false, 13);
         addText(panel, "A phone-free chime for your Blink video doorbell. "
                 + "It rings when Blink sends a doorbell button-press event to your TV. "
                 + "Not affiliated with Blink, Amazon or Google.", 15, MUTED, false, 15);
