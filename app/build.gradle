@@ -1,5 +1,11 @@
 plugins { id 'com.android.application' }
 
+// Real main-app updates must use ONE stable signing identity.
+// The signing archive is encrypted in git and unlocked only by a private Actions secret.
+// Never commit release passwords or unencrypted keystores.
+def releasePassword = System.getenv('RINGADING_RELEASE_PASSWORD')
+def releaseKeystore = System.getenv('RINGADING_KEYSTORE_PATH')
+
 android {
     namespace 'uk.co.lumsdon.ringading'
     compileSdk 35
@@ -7,8 +13,8 @@ android {
         applicationId 'uk.co.lumsdon.ringading'
         minSdk 26
         targetSdk 34
-        versionCode 3
-        versionName '0.2.0-beta'
+        versionCode 4
+        versionName '0.3.0'
         manifestPlaceholders = [appLabel: 'Ringading']
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -16,18 +22,31 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+    signingConfigs {
+        persistentRelease {
+            if (releasePassword && releaseKeystore) {
+                storeFile file(releaseKeystore)
+                storePassword releasePassword
+                keyAlias 'ringading'
+                keyPassword releasePassword
+                storeType 'pkcs12'
+            }
+        }
+    }
     buildTypes {
         debug {
-            // Side-by-side beta to preserve the previously working v0.1 APK.
-            // Ephemeral GitHub debug signatures cannot update that install in place.
-            applicationIdSuffix '.beta'
-            manifestPlaceholders = [appLabel: 'Ringading Beta']
+            // Preview never replaces the currently installed and working v0.1 app.
+            applicationIdSuffix '.preview'
+            manifestPlaceholders = [appLabel: 'Ringading Preview']
         }
-        release { minifyEnabled false }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.persistentRelease
+            manifestPlaceholders = [appLabel: 'Ringading']
+        }
     }
     packaging { resources { excludes += ['/META-INF/{AL2.0,LGPL2.1}'] } }
 }
-
 dependencies {
     implementation 'com.google.firebase:firebase-messaging:24.1.2'
     testImplementation 'junit:junit:4.13.2'
