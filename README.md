@@ -37,3 +37,7 @@ No licence has been chosen yet. A public GitHub repository alone does not grant 
 ## Disclaimer
 
 Unofficial independent project, not affiliated with or endorsed by Blink, Amazon, Google or Home Assistant.
+
+## Implementation note (public GitHub edition)
+
+The GitHub version contains the same application logic with **Android vector XML** launcher art instead of PNG files and **programmatically synthesised ding-dong audio** instead of a binary WAV. The official Gradle 8.9 wrapper has been checked in, with its distribution checksum; the Windows command is `gradlew.bat :app:assembleDebug`. The `Developed by Lumsdon` credit appears on the TV home screen and About panel. All Blink login and push functionality is **unverified on real hardware**; no APK has been built here.
