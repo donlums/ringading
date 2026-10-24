@@ -9,6 +9,7 @@ on:
       - 'gradle/**'
       - 'gradlew'
       - 'gradlew.bat'
+      - 'gradle.properties'
       - 'build.gradle'
       - 'settings.gradle'
   workflow_dispatch:
