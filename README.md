@@ -1,6 +1,6 @@
 # Ringading · Blink doorbell chime for Android TV
 
-**Developed by Lumsdon**
+**Developed by Pix91**
 
 Ringading adds a chime and visitor notification to a compatible Android TV, without a phone companion.
 

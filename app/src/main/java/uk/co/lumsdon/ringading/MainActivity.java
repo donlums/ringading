@@ -194,7 +194,7 @@ public final class MainActivity extends Activity {
         else about();
 
         LinearLayout foot = horizontal();
-        TextView credit = text("Developed by Lumsdon", 12, MUTED, true);
+        TextView credit = text("Developed by Pix91", 12, MUTED, true);
         foot.addView(credit, new LinearLayout.LayoutParams(0, -2, 1));
         foot.addView(text("RINGADING  ·  v0.4  ·  ANDROID TV", 11, MUTED, false));
         host.addView(foot, margins(-1, dp(34), 0));
@@ -361,7 +361,7 @@ public final class MainActivity extends Activity {
     private void about() {
         LinearLayout panel = card();
         addText(panel, "Ringading", 30, WHITE, true, 9);
-        addText(panel, "Developed by Lumsdon", 18, MINT, true, 18);
+        addText(panel, "Developed by Pix91", 18, MINT, true, 18);
         addText(panel, "Version 0.4 live-view preview · Android TV", 15, WHITE, false, 13);
         addText(panel, "A phone-free chime for your Blink video doorbell. "
                 + "It rings when Blink sends a doorbell button-press event to your TV. "
