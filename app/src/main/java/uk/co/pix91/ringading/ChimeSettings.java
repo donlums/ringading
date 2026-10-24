@@ -1,4 +1,4 @@
-package uk.co.lumsdon.ringading;
+package uk.co.pix91.ringading;
 
 /** Pure Java settings validated for use from the Android TV interface and audio thread. */
 public final class ChimeSettings {

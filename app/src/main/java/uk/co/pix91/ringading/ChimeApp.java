@@ -1,4 +1,4 @@
-package uk.co.lumsdon.ringading;
+package uk.co.pix91.ringading;
 
 import android.app.Application;
 import com.google.firebase.FirebaseApp;

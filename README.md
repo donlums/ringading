@@ -1,5 +1,7 @@
 # Ringading · Blink doorbell chime for Android TV
 
+**Pix91 edition · v0.4.2**
+
 **Developed by Pix91**
 
 Ringading adds a chime and visitor notification to a compatible Android TV, without a phone companion.
@@ -21,7 +23,7 @@ Ringading adds a chime and visitor notification to a compatible Android TV, with
 
 **Original Blink Video Doorbell (1st Gen) Event Response mode:** Blink generally only permits Live View through recent event notifications within 60 seconds if it is not paired with a Sync Module or compatible wiring. Manual viewing may therefore fail. See [Blink Event Response support](https://support.blinkforhome.com/en_US/event-response).
 
-For safety, v0.4 has a separate package `uk.co.lumsdon.ringading.livepreview`. It **cannot and will not replace the working v0.3 or original v0.1 app**, so connecting Blink again is necessary for this preview. The existing installed chime remains untouched.
+For safety, v0.4 has a separate package `uk.co.pix91.ringading.pixpreview`. It **cannot and will not replace the working v0.3 or original v0.1 app**, so connecting Blink again is necessary for this preview. The existing installed chime remains untouched.
 
 ## Build
 
@@ -34,3 +36,8 @@ Public GitHub Actions provides build artifacts on changes to main. Keep account 
 ## Protocol references
 
 Protocol research draws on [BlinkPy](https://github.com/fronzbot/blinkpy) and [Blink Live View Proxy](https://github.com/Teethree89/ha-blink-live-view-proxy). Both are MIT-licensed community projects. Ringading is unofficial and not affiliated with Blink, Amazon or Google. It should not be your only doorbell alert.
+
+
+### Pix91 branding
+
+The Android application ID and all Java source packages are now under `uk.co.pix91.ringading`, with the debug preview using `uk.co.pix91.ringading.pixpreview`. This makes the Pix91 APK a new installation, not an in-place upgrade from the original package. Existing installations and their Blink sessions are not changed; users must sign in separately in the newly branded preview. The visible developer credit is **Developed by Pix91**.

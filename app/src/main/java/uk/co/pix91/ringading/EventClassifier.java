@@ -1,4 +1,4 @@
-package uk.co.lumsdon.ringading;
+package uk.co.pix91.ringading;
 
 import java.util.Locale;
 import java.util.Map;

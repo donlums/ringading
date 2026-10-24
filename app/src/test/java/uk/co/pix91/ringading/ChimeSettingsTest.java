@@ -1,4 +1,4 @@
-package uk.co.lumsdon.ringading;
+package uk.co.pix91.ringading;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 

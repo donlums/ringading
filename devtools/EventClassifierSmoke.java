@@ -1,5 +1,5 @@
 import java.util.Map;
-import uk.co.lumsdon.ringading.EventClassifier;
+import uk.co.pix91.ringading.EventClassifier;
 
 /** Run this with JDK 17, no Android SDK required. */
 public final class EventClassifierSmoke {

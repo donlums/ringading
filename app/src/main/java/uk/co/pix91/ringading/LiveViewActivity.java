@@ -1,4 +1,4 @@
-package uk.co.lumsdon.ringading;
+package uk.co.pix91.ringading;
 
 import android.app.Activity;
 import android.app.AlertDialog;
