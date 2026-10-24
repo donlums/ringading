@@ -1,38 +1,53 @@
-# Ringading — Android TV Blink Doorbell Chime
+# Ringading · Android TV doorbell chime
 
 **Developed by Lumsdon**
 
-Standalone Android TV experimental chime for Blink Video Doorbell owners. No phone companion is required.
+An Android TV doorbell chime for a Blink Video Doorbell, without a phone companion or Home Assistant. This is an unofficial independent project.
 
-## Latest: v0.2.0 beta
+## v0.3: redesigned TV dashboard
 
-- **Louder, fuller two-note ding-dong** routed through your TV's media volume.
-- Adjustable **4, 8 (default), or 12-second** ring with repeated pairs.
-- Chime volume from **0–100% (default 100%)** of the TV's media output, with soft limiting to prevent digital clipping.
-- Optional **“Someone is at your door”** on-screen banner over other apps for approximately 9 seconds. Requires Android's **Display over other apps** special permission, if your TV supports it.
-- Normal high-priority doorbell notification remains a fallback.
-- Blink cloud connection unchanged; already working users can compare behaviours.
+- Remote-friendly four-tab navigation: **Home**, **Chime & alerts**, **Blink connection**, and **About**.
+- High-contrast dark navy and amber TV layout with larger focus states and safe-screen margins.
+- Home shows the latest ring and a one-click chime / pop-up preview.
+- Chime supports **4, 8, or 12 seconds** and volume from **0–100%** of the TV media volume.
+- Optional nine-second **“Someone is at your door”** pop-up; requires user-granted Display over other apps permission.
+- Actual button presses trigger alerts; motion-only events are ignored.
+- Blink sign-in and encrypted local session storage remain unchanged.
 
-**Important installation note:** The free GitHub runner changes Android debug signing keys on each job. Instead of forcing you to uninstall the original working build, v0.2.0-beta debug APK uses Android package `uk.co.lumsdon.ringading.beta`, allowing it to install **alongside** the original Ringading. It has separate data and needs its own Blink login/association to ring on real events. Disable pop-ups or sign out of one app to avoid duplicate chimes when both receive an event. A stable production release-signing key has not yet been set up.
+## Preserve your working Blink connection
 
-## Build on Windows
+**Important:** The first Ringading v0.1 APK was signed with a temporary debug key generated on a GitHub hosted runner. That private signing key was not retained. **No new APK can replace that exact installation without losing its existing app data**, because Android requires an identical signing certificate to perform an update. Do not uninstall the working app until you are ready.
 
-Open this Gradle project in Android Studio (JDK 17, SDK 35). Run:
+The automatic GitHub **preview** build uses package `uk.co.lumsdon.ringading.preview`, so you can safely install it **beside** the existing Ringading app and test the redesign. The preview has separate settings and Blink tokens and must be paired separately to receive live events.
+
+The **permanent main-app** signing key is now generated and encrypted as `signing/ringading-release.p12.gpg.b64` with GPG AES-256. Its private unlocking password is **not** in GitHub. The signed release workflow is a manual GitHub Actions workflow which requires a private repository secret named `RINGADING_RELEASE_PASSWORD`.
+
+### One-time setup for permanent update signing
+
+1. Obtain the separately supplied private recovery file `RINGADING-SIGNING-RECOVERY-KEEP-PRIVATE.txt` and keep it in a password manager. **Never upload it to your public repo.**
+2. In the `donlums/ringading` repository open **Settings → Secrets and variables → Actions → New repository secret**.
+3. Name the secret `RINGADING_RELEASE_PASSWORD`, and paste the single secret value from that private recovery file.
+4. Open **Actions → Ringading signed main app (permanent update key) → Run workflow**.
+5. After the release workflow succeeds, its artifact is a permanently signed main-app APK with package `uk.co.lumsdon.ringading`.
+
+The **first** installation of the permanently signed main APK will still require uninstalling the old v0.1 APK (after you are ready), losing its old secure Blink login. Sign into Blink once again after installing the new main app. **Future main-app APKs signed with this same permanent key and a higher `versionCode` can update in place**, preserving Android app data and Blink connection. Keep the signing password and archive backups safe permanently; do not regenerate them for each update.
+
+Do not upload keystores, signing passwords or Blink access tokens in public issues or code.
+
+## Build and test
+
+From Android Studio on Windows 11 with Android SDK 35 and JDK 17:
 
 ```powershell
 .\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
 ```
 
-The debug APK is at `app/build/outputs/apk/debug/app-debug.apk`. The repository also builds APK artifacts using free runners for public repositories on each source change.
+The APK is `app/build/outputs/apk/debug/app-debug.apk`. GitHub also produces a downloadable preview APK via **Ringading APK (free public runner)** on each push to `main`. It uses the public repository GitHub-hosted runner.
 
-## Blink connection limitations
+To build a **main app release**, use the separately configured manually triggered release-signing workflow after entering your repository secret, not `assembleDebug`.
 
-This app uses an unofficial Blink cloud/Firebase approach based on [CoreyHayward's Blink Live Events](https://github.com/CoreyHayward/ha-blink-live-events). Receiving real presses depends on Blink accepting the independent Android app identity and notifying it. It may stop working after vendor-side changes. Motion events do not trigger the chime.
+## Disclaimers
 
-## Privacy
+Blink Cloud / Firebase communication is an unofficial, reverse-engineered interface and may change. It is already reported working on one installed Ringading device but should not be relied on as the only doorbell alert. TV pop-up support varies by device and streaming application.
 
-Never share Blink passwords, MFA codes, OAuth callback URLs, session tokens, or notification payloads. See [SECURITY.md](SECURITY.md).
-
-## Disclaimer
-
-Independent community project not affiliated with Blink, Amazon, Google, or Home Assistant. Public repository; no redistribution licence selected yet.
+Reference: [Blink Live Events by CoreyHayward](https://github.com/CoreyHayward/ha-blink-live-events). Ringading is not affiliated with Blink, Amazon, Google, or Home Assistant. A public repository does not in itself grant a software licence.
