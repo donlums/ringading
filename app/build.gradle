@@ -36,8 +36,8 @@ android {
     buildTypes {
         debug {
             // Preview never replaces the currently installed and working v0.1 app.
-            applicationIdSuffix '.livepreview'
-            manifestPlaceholders = [appLabel: 'Ringading Live Preview']
+            applicationIdSuffix '.pixpreview'
+            manifestPlaceholders = [appLabel: 'Ringading Pix91 Preview']
         }
         release {
             minifyEnabled false
