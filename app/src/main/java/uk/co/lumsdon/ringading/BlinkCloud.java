@@ -139,6 +139,25 @@ public final class BlinkCloud {
         store.put("linked", "true");
         Status.write(context, "Blink association submitted; press the doorbell to verify push reception");
     }
+    /** Reuses Ringading's existing authorised Blink session, never a new login. */
+    static String restRoot(Context context) {
+        String tier = new SecureStore(context).get("tier");
+        if (!tier.matches("[a-zA-Z0-9-]{1,30}")) throw new IllegalStateException("Connect Blink first");
+        return "https://rest-" + tier + ".immedia-semi.com";
+    }
+    static JSONObject liveRequest(Context context, String method, String url, JSONObject body) throws Exception {
+        String root = restRoot(context);
+        if (!url.startsWith(root + "/api/")) throw new SecurityException("Unexpected Blink API URL");
+        String clientId = new SecureStore(context).get("client_id");
+        return request(method, url, body, null, access(context), clientId.isEmpty()?null:clientId).obj;
+    }
+    static JSONObject liveHomescreen(Context context) throws Exception {
+        String account = new SecureStore(context).get("account_id");
+        if (!account.matches("[0-9]{1,18}")) throw new IllegalStateException("Blink account is not linked");
+        return liveRequest(context, "GET", restRoot(context)
+            + "/api/v3/accounts/" + account + "/homescreen", null);
+    }
+
     static void acknowledge(Context context, java.util.Map<String,String> payload) throws Exception {
         String flag = payload.getOrDefault("return_receipt", "").toLowerCase(java.util.Locale.ROOT);
         if (!flag.equals("1") && !flag.equals("yes") && !flag.equals("true")) return;
