@@ -146,7 +146,7 @@ public final class LiveViewActivity extends Activity {
                             else if(state==Player.STATE_ENDED)report("Live camera session finished");
                         }
                         @Override public void onPlayerError(PlaybackException error) {
-                            report("Video decoder: " + error.errorCodeName +
+                            report("Video decoder: " + error.getErrorCodeName() +
                                 " · Blink stream may need a different transport");
                         }
                     });

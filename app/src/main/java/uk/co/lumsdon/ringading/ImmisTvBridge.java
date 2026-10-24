@@ -99,7 +99,10 @@ final class ImmisTvBridge implements AutoCloseable {
                 throw new IOException("Invalid Blink server endpoint");
             remote=(SSLSocket)SSLSocketFactory.getDefault().createSocket(hostname, uri.getPort());
             remote.setSoTimeout(11000);
-            remote.startHandshake(); // Standard Android CA/host verification only. Never bypass TLS trust.
+            javax.net.ssl.SSLParameters secureParams=remote.getSSLParameters();
+            secureParams.setEndpointIdentificationAlgorithm("HTTPS");
+            remote.setSSLParameters(secureParams);
+            remote.startHandshake(); // Trust anchor and DNS-name verification are both mandatory.
             DataInputStream stream=new DataInputStream(new BufferedInputStream(remote.getInputStream()));
             DataOutputStream commands=new DataOutputStream(remote.getOutputStream());
             byte[] authentication=authHeader(uri);
