@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ringading</string>
+    <string name="developer_credit">Developed by Lumsdon</string>
+    <string name="app_tagline">Your Blink doorbell chime for Android TV</string>
+</resources>
