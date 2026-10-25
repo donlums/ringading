@@ -65,6 +65,8 @@ final class DoorbellHealth {
         for(String key:keys){
             Object raw=object.opt(key);
             if(raw instanceof String && !((String)raw).trim().isEmpty())return ((String)raw).trim();
+            if(raw instanceof Number && (key.equals("id") || key.equals("network_id")
+                || key.equals("doorbell_id") || key.equals("device_id"))) return raw.toString();
         }
         return "";
     }
