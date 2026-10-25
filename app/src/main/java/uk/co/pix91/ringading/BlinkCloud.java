@@ -13,6 +13,12 @@ import org.json.JSONObject;
 /** Proof-of-concept Blink v60 OAuth/FCM association. Unofficial and may change. */
 public final class BlinkCloud {
     private BlinkCloud() { }
+    private static final Object AUTH_LOCK = new Object();
+    private static final long MIN_VALIDITY_MS = 5L * 60 * 1000;
+    static final class BlinkHttpException extends java.io.IOException {
+        final int status;
+        BlinkHttpException(int status) { super("Blink HTTP " + status); this.status = status; }
+    }
     private static final String TOKEN_URL = "https://api.oauth.blink.com/oauth/token";
     private static final Pattern SIMPLE = Pattern.compile("[a-zA-Z0-9-]{1,45}");
     private static final String USER_AGENT = "Blink/60.0 (Ringading; Android TV)";
@@ -46,7 +52,7 @@ public final class BlinkCloud {
         }
         try {
             int status = con.getResponseCode();
-            if (status < 200 || status >= 300) throw new IllegalStateException("HTTP " + status + " from Blink");
+            if (status < 200 || status >= 300) throw new BlinkHttpException(status);
             JSONObject json;
             try (InputStream stream = con.getInputStream()) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -71,11 +77,14 @@ public final class BlinkCloud {
     private static void saveTokens(SecureStore store, JSONObject obj) {
         String access = obj.optString("access_token", "");
         String refresh = obj.optString("refresh_token", "");
+        if (refresh.isEmpty()) refresh = store.get("refresh_token");
         if (access.isEmpty() || refresh.isEmpty()) throw new IllegalStateException("Incomplete OAuth tokens");
         store.put("access_token", access);
         store.put("refresh_token", refresh);
         long expiration = System.currentTimeMillis() + Math.max(60, obj.optLong("expires_in", 3600) - 60) * 1000L;
         store.put("expires_at", Long.toString(expiration));
+        store.put("auth_attention", "false");
+        store.put("last_token_renewed_ms", Long.toString(System.currentTimeMillis()));
     }
     static void exchange(Context context, String code, String verifier, String hardwareId) throws Exception {
         String form = "grant_type=authorization_code&redirect_uri=" + escape("https://applinks.blink.com/signin/callback")
@@ -90,19 +99,38 @@ public final class BlinkCloud {
         if (!SIMPLE.matcher(val).matches()) throw new IllegalArgumentException("Invalid " + name);
         return val;
     }
+    /** Prevent background and foreground clients from using the same rotating refresh token concurrently. */
     static String access(Context context) throws Exception {
+        synchronized (AUTH_LOCK) {
+            SecureStore store = new SecureStore(context);
+            String token = store.get("access_token");
+            long exp;
+            try { exp = Long.parseLong(store.get("expires_at")); }
+            catch (NumberFormatException e) { exp = 0; }
+            if (!token.isEmpty() && exp - System.currentTimeMillis() > MIN_VALIDITY_MS) return token;
+            String refresh = store.get("refresh_token");
+            if (refresh.isEmpty()) throw new IllegalStateException("Not signed in");
+            String form = "grant_type=refresh_token&refresh_token=" + escape(refresh) + "&client_id=android&scope=client";
+            try {
+                Response result = request("POST", TOKEN_URL, null, form, null, null);
+                saveTokens(store, result.obj);
+                return store.get("access_token");
+            } catch (BlinkHttpException error) {
+                if (error.status == 400 || error.status == 401) {
+                    // Blink may require genuine MFA. Preserve saved tokens and the push registration.
+                    store.put("auth_attention", "true");
+                }
+                throw error;
+            }
+        }
+    }
+
+    /** Keeps the authorised account alive when Blink permits it; never bypasses MFA. */
+    static void maintainSession(Context context) throws Exception {
         SecureStore store = new SecureStore(context);
-        String token = store.get("access_token");
-        long exp;
-        try { exp = Long.parseLong(store.get("expires_at")); }
-        catch (NumberFormatException e) { exp = 0; }
-        if (!token.isEmpty() && exp > System.currentTimeMillis()) return token;
-        String refresh = store.get("refresh_token");
-        if (refresh.isEmpty()) throw new IllegalStateException("Not signed in");
-        String form = "grant_type=refresh_token&refresh_token=" + escape(refresh) + "&client_id=android&scope=client";
-        Response r = request("POST", TOKEN_URL, null, form, null, null);
-        saveTokens(store, r.obj);
-        return store.get("access_token");
+        if (store.get("refresh_token").isEmpty()) return;
+        access(context);
+        store.put("last_auth_checked_ms", Long.toString(System.currentTimeMillis()));
     }
     /** Link the independent TV's FCM token to the Blink client. Must run off UI thread. */
     static void link(Context context) throws Exception {
