@@ -35,8 +35,9 @@ android {
     }
     buildTypes {
         debug {
-            // This Pix91 application has its own package ID, separate from previous test editions.
-            // Debug signing is temporary. Signed releases require the stable release key.
+            // GitHub debug signatures change between runs. Use a distinct app ID so testing
+            // never forces uninstalling a working Ringading installation or losing Blink login.
+            applicationIdSuffix '.maintenance'
             manifestPlaceholders = [appLabel: 'Ringading']
         }
         release {
