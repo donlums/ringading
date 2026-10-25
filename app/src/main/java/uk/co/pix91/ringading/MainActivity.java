@@ -49,6 +49,7 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         if (state != null) page = state.getInt("page", 0);
+        else if (getIntent().getBooleanExtra("open_blink_connection", false)) page = 2;
         if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
@@ -200,7 +201,7 @@ public final class MainActivity extends Activity {
         LinearLayout foot = horizontal();
         TextView credit = text("Developed by Pix91", 12, MUTED, true);
         foot.addView(credit, new LinearLayout.LayoutParams(0, -2, 1));
-        foot.addView(text("RINGADING  ·  v0.4  ·  ANDROID TV", 11, MUTED, false));
+        foot.addView(text("RINGADING  ·  v0.4.6  ·  ANDROID TV", 11, MUTED, false));
         host.addView(foot, margins(-1, dp(34), 0));
     }
     private void home() {
@@ -384,6 +385,51 @@ public final class MainActivity extends Activity {
                     }).show(), 0);
         }
         host.addView(panel, margins(-1, -2, 16));
+
+        LinearLayout health = card();
+        addText(health, "DOORBELL HEALTH", 12, AMBER, true, 10);
+        addText(health, "Battery and connection alerts", 21, WHITE, true, 8);
+        var healthData=getSharedPreferences("doorbell_health_v1",MODE_PRIVATE);
+        long lastCheck=healthData.getLong("last_success_ms",0);
+        addText(health, lastCheck==0 ? "Waiting for first Blink health check"
+            : "Last Blink health check · "
+              + new SimpleDateFormat("EEE d MMM, HH:mm",Locale.UK).format(new Date(lastCheck)),
+            13, MUTED, false, 10);
+        for(String line:healthData.getString("summary","Doorbell status not checked yet").split("\\n")) {
+            addText(health,line,14,WHITE,false,8);
+        }
+        addText(health, "Offline requires two explicit Blink reports at least five minutes apart. A TV internet outage does not mean your doorbell is offline.",
+            12,MUTED,false,12);
+        var settings=getSharedPreferences("visible_settings",MODE_PRIVATE);
+        boolean batteryAlerts=settings.getBoolean("health_battery_alerts",true);
+        action(health,"Low battery notifications: "+(batteryAlerts?"ON":"OFF"),false,()->{
+            settings.edit().putBoolean("health_battery_alerts",!batteryAlerts).apply();
+            render();
+        },8);
+        boolean offlineAlerts=settings.getBoolean("health_offline_alerts",true);
+        action(health,"Disconnected notifications: "+(offlineAlerts?"ON":"OFF"),false,()->{
+            settings.edit().putBoolean("health_offline_alerts",!offlineAlerts).apply();
+            render();
+        },8);
+        boolean banners=settings.getBoolean("health_tv_popups",true);
+        action(health,"On-screen health banners: "+(banners?"ON":"OFF"),false,()->{
+            settings.edit().putBoolean("health_tv_popups",!banners).apply();
+            render();
+        },12);
+        action(health,"Check doorbell health now",true,()->{
+            Status.write(this,"Checking Blink doorbell battery and connection…");
+            ChimeApp.IO.execute(()->{
+                try {
+                    DoorbellHealthMonitor.check(this,true);
+                    Status.write(this,"Doorbell health check complete");
+                } catch(Exception e) {
+                    Status.write(this,"Doorbell health temporarily unavailable ("+e.getClass().getSimpleName()+")");
+                }
+                runOnUiThread(()->{if(!isFinishing() && page==2)render();});
+            });
+        },0);
+        host.addView(health,margins(-1,-2,16));
+
         LinearLayout recent = card();
         addText(recent, "CONNECTION ACTIVITY", 12, AMBER, true, 10);
         eventText = text(Status.read(this), 14, WHITE, false);
@@ -394,7 +440,7 @@ public final class MainActivity extends Activity {
         LinearLayout panel = card();
         addText(panel, "Ringading", 30, WHITE, true, 9);
         addText(panel, "Developed by Pix91", 18, MINT, true, 18);
-        addText(panel, "Version 0.4.5 · Android TV", 15, WHITE, false, 13);
+        addText(panel, "Version 0.4.6 · Android TV", 15, WHITE, false, 13);
         addText(panel, "A phone-free chime for your Blink video doorbell. "
                 + "It rings when Blink sends a doorbell button-press event to your TV. "
                 + "Not affiliated with Blink, Amazon or Google.", 15, MUTED, false, 15);
@@ -441,6 +487,10 @@ public final class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(changes, filter, Context.RECEIVER_NOT_EXPORTED);
         else registerReceiver(changes, filter);
     }
-    @Override protected void onResume() { super.onResume(); if (host != null) render(); }
+    @Override protected void onResume() {
+        super.onResume();
+        HealthCheckWorker.checkWhenOpened(this);
+        if (host != null) render();
+    }
     @Override protected void onStop() { unregisterReceiver(changes); super.onStop(); }
 }

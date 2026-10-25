@@ -166,6 +166,7 @@ public final class BlinkCloud {
             body, null, access, clientId);
         store.put("linked", "true");
         Status.write(context, "Blink association submitted; press the doorbell to verify push reception");
+        HealthCheckWorker.checkWhenOpened(context);
     }
     /** Reuses Ringading's existing authorised Blink session, never a new login. */
     static String restRoot(Context context) {

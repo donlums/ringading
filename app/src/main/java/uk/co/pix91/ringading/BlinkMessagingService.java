@@ -31,6 +31,13 @@ public final class BlinkMessagingService extends FirebaseMessagingService {
                 DoorbellOverlay.show(this);
                 notifyBell();
             }
+        } else if (DoorbellHealthMonitor.isHealthPush(data)) {
+            // Push is only a hint. Verify battery/offline status through Blink homescreen;
+            // never infer an offline camera from a missing push or a failed HTTP request.
+            ChimeApp.IO.execute(() -> {
+                try { DoorbellHealthMonitor.check(this,false); }
+                catch (Exception ignored) { }
+            });
         } else {
             Status.write(this, "Blink push received (ignored: " + eventType.substring(0, Math.min(45, eventType.length())) + ")");
         }

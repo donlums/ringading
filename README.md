@@ -10,6 +10,14 @@ Ringading checks its authorised Blink session when the app starts and schedules 
 
 **Blink controls authentication**. A 30-day trusted-device MFA period cannot be extended or bypassed by Ringading; Blink can request reauthentication at any time. Android may delay periodic jobs while the TV is asleep or offline. If Blink rejects the refresh token, Ringading keeps the existing local settings and displays a sign-in warning rather than pretending the connection is healthy.
 
+## Low battery and disconnected doorbell notifications
+
+Ringading reads the Blink `doorbells` status data every ~30 minutes when Android TV is online, and checks on app launch. A genuinely low battery triggers one silent TV notification and optional amber 12-second on-screen banner. Offline alerts need **two explicitly reported offline states at least 5 minutes apart** to avoid transient false alarms. A missing battery level, sleeping doorbell, unarmed motion or failure to reach the Blink cloud never counts as low battery or offline.
+
+The **Blink connection → Doorbell health** section displays the last successful health check, available battery and connection information, a manual refresh and switches for each notification type and the on-screen banners. Alerts do not play the visitor chime. Battery and offline status may be unavailable for some Blink models or cloud API responses; Ringading does not invent the missing states. These are periodic observations, not real-time guarantees.
+
+This v0.4.6 test build uses the separate Android package `uk.co.pix91.ringading.health`, so an existing, working Ringading installation and its Blink sign-in are protected. Connect Blink again in the test installation.
+
 ## Features
 
 - TV-friendly navigation, chime volume, 4/8/12-second doorbell sounds and a visitor alert
