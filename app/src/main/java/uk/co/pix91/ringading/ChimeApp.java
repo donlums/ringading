@@ -18,6 +18,8 @@ public final class ChimeApp extends Application {
 
     @Override public void onCreate() {
         super.onCreate();
+        SessionMaintenance.schedule(this);
+        SessionMaintenance.checkWhenOpened(this);
         try {
             if (FirebaseApp.getApps(this).isEmpty()) {
                 FirebaseOptions opts = new FirebaseOptions.Builder()
