@@ -4,6 +4,12 @@
 
 Ringading makes your compatible Android TV play a configurable chime when your Blink doorbell is pressed, without a phone companion or Home Assistant.
 
+## Automatic Blink session renewal
+
+Ringading checks its authorised Blink session when the app starts and schedules a network-connected check roughly every 12 hours using Android WorkManager, including after TV restarts. Access tokens are refreshed as needed; new rotating refresh tokens are stored encrypted on the TV. The Blink connection screen shows the last successful check and a manual **Check Blink connection now** button.
+
+**Blink controls authentication**. A 30-day trusted-device MFA period cannot be extended or bypassed by Ringading; Blink can request reauthentication at any time. Android may delay periodic jobs while the TV is asleep or offline. If Blink rejects the refresh token, Ringading keeps the existing local settings and displays a sign-in warning rather than pretending the connection is healthy.
+
 ## Features
 
 - TV-friendly navigation, chime volume, 4/8/12-second doorbell sounds and a visitor alert
