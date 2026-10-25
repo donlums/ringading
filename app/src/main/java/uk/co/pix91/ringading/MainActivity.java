@@ -132,12 +132,16 @@ public final class MainActivity extends Activity {
     }
     private String connectionLabel() {
         SecureStore store = new SecureStore(this);
+        if ("true".equals(store.get("auth_attention"))) return "BLINK SIGN-IN REQUIRED";
         if ("true".equals(store.get("linked"))) {
             return lastRingMs() > 0 ? "CONNECTED · PRESS VERIFIED" : "LINKED · AWAITING FIRST PRESS";
         }
         return store.get("refresh_token").isEmpty() ? "NOT CONNECTED" : "SIGN-IN SAVED · RECONNECT";
     }
-    private boolean connected() { return "true".equals(new SecureStore(this).get("linked")); }
+    private boolean connected() {
+        SecureStore store = new SecureStore(this);
+        return "true".equals(store.get("linked")) && !"true".equals(store.get("auth_attention"));
+    }
     private long lastRingMs() {
         return getSharedPreferences("visible_settings", MODE_PRIVATE).getLong("last_ring_ms", 0L);
     }
@@ -325,7 +329,19 @@ public final class MainActivity extends Activity {
         LinearLayout panel = card();
         addText(panel, "CONNECTION STATUS", 12, AMBER, true, 11);
         addText(panel, connectionLabel(), 22, connected() ? MINT : WHITE, true, 8);
-        addText(panel, lastRingLabel(), 14, MUTED, false, 18);
+        addText(panel, lastRingLabel(), 14, MUTED, false, 9);
+        SecureStore sessionStore = new SecureStore(this);
+        if ("true".equals(sessionStore.get("auth_attention"))) {
+            addText(panel, "Blink refused to renew the sign-in. Please sign in and verify again.", 14, AMBER, true, 12);
+        } else if (!sessionStore.get("refresh_token").isEmpty()) {
+            addText(panel, "Automatic session checks enabled (while TV is online)", 13, MINT, false, 8);
+            try {
+                long verifiedAt = Long.parseLong(sessionStore.get("last_auth_checked_ms"));
+                if (verifiedAt > 0) addText(panel, "Last successful session check · "
+                    + new SimpleDateFormat("EEE d MMM, HH:mm", Locale.UK).format(new Date(verifiedAt)),
+                    13, MUTED, false, 12);
+            } catch (NumberFormatException ignored) { }
+        }
         SecureStore store = new SecureStore(this);
         if (store.get("refresh_token").isEmpty())
             action(panel, "Connect Blink account", true,
@@ -333,6 +349,22 @@ public final class MainActivity extends Activity {
         else
             action(panel, "Reauthenticate Blink account", false,
                     () -> startActivity(new Intent(this, SignInActivity.class)), 9);
+        action(panel, "Check Blink connection now", false, () -> {
+            Status.write(this, "Checking Blink authentication…");
+            ChimeApp.IO.execute(() -> {
+                try {
+                    BlinkCloud.maintainSession(this);
+                    Status.write(this, "Blink session checked successfully");
+                } catch (BlinkCloud.BlinkHttpException e) {
+                    Status.write(this, (e.status == 400 || e.status == 401)
+                        ? "Blink sign-in verification required"
+                        : "Blink temporarily unavailable (HTTP " + e.status + ")");
+                } catch (Exception e) {
+                    Status.write(this, "Blink check unavailable · " + e.getClass().getSimpleName());
+                }
+                runOnUiThread(() -> { if (!isFinishing() && page == 2) render(); });
+            });
+        }, 10);
         action(panel, "Reconnect doorbell notifications", false, () -> {
             Status.write(this, "Checking Blink association…");
             ChimeApp.IO.execute(() -> {
@@ -362,7 +394,7 @@ public final class MainActivity extends Activity {
         LinearLayout panel = card();
         addText(panel, "Ringading", 30, WHITE, true, 9);
         addText(panel, "Developed by Pix91", 18, MINT, true, 18);
-        addText(panel, "Version 0.4.3 · Android TV", 15, WHITE, false, 13);
+        addText(panel, "Version 0.4.4 · Android TV", 15, WHITE, false, 13);
         addText(panel, "A phone-free chime for your Blink video doorbell. "
                 + "It rings when Blink sends a doorbell button-press event to your TV. "
                 + "Not affiliated with Blink, Amazon or Google.", 15, MUTED, false, 15);
