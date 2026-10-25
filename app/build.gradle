@@ -13,8 +13,8 @@ android {
         applicationId 'uk.co.pix91.ringading'
         minSdk 26
         targetSdk 34
-        versionCode 9
-        versionName '0.4.4'
+        versionCode 10
+        versionName '0.4.5'
         manifestPlaceholders = [appLabel: 'Ringading']
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -37,7 +37,7 @@ android {
         debug {
             // GitHub debug signatures change between runs. Use a distinct app ID so testing
             // never forces uninstalling a working Ringading installation or losing Blink login.
-            applicationIdSuffix '.maintenance'
+            applicationIdSuffix '.videodiag'
             manifestPlaceholders = [appLabel: 'Ringading']
         }
         release {

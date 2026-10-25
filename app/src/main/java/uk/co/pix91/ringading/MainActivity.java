@@ -394,7 +394,7 @@ public final class MainActivity extends Activity {
         LinearLayout panel = card();
         addText(panel, "Ringading", 30, WHITE, true, 9);
         addText(panel, "Developed by Pix91", 18, MINT, true, 18);
-        addText(panel, "Version 0.4.4 · Android TV", 15, WHITE, false, 13);
+        addText(panel, "Version 0.4.5 · Android TV", 15, WHITE, false, 13);
         addText(panel, "A phone-free chime for your Blink video doorbell. "
                 + "It rings when Blink sends a doorbell button-press event to your TV. "
                 + "Not affiliated with Blink, Amazon or Google.", 15, MUTED, false, 15);

@@ -48,7 +48,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Ringading-v0.4.4-Pix91-debug-apk
+          name: Ringading-v0.4.5-Pix91-video-diagnostics-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7

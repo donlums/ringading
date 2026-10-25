@@ -18,6 +18,12 @@ Ringading checks its authorised Blink session when the app starts and schedules 
 - **Watch live camera**: experimental on-device doorbell discovery and a direct Blink IMMIS transport bridge to a TV video player
 - A 35-second limit on test video sessions; no cloud recording or external video proxy
 
+## Live video diagnostics (v0.4.5)
+
+The Blink IMMI transport bridge now verifies MPEG-TS sync bytes before responding with a playable HTTP stream. A 40-second local-player read timeout allows the camera to wake without being mistaken for an unrecognised format. A built-in TV status panel reports **TLS status, IMMI frame count, non-video frames, MPEG-TS sync confirmation, packet counts and the failure stage**, never passwords, tokens, Blink endpoint URLs or camera serials.
+
+This is still an experimental streaming integration; an automated build cannot verify a real camera connection. Existing chimes continue to work, and this test edition is installed separately as `uk.co.pix91.ringading.videodiag`.
+
 ## Live camera testing
 
 The live-video feature has compiled and passed automated Android tests, **but actual Blink camera playback has not yet been verified**. The current prototype supports Blink's `immis://` transport, not `rtsps://`. Live View may be unavailable in Event Response mode or when the camera is asleep or busy.
