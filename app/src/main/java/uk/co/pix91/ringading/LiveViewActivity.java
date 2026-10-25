@@ -16,6 +16,8 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.ui.PlayerView;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +29,8 @@ public final class LiveViewActivity extends Activity {
     private ExoPlayer player;
     private ImmisTvBridge bridge;
     private TextView status;
+    private TextView diagnostics;
+    private volatile String playbackIssue = "";
     private Button watch;
     private volatile boolean finishing=false;
     private static final int BG=0xff0b121e;
@@ -86,11 +90,30 @@ public final class LiveViewActivity extends Activity {
         LinearLayout.LayoutParams bottom=new LinearLayout.LayoutParams(-1,-2);
         bottom.topMargin=22;
         hud.addView(note,bottom);
+        diagnostics=new TextView(this);
+        diagnostics.setText("Stream diagnostics will appear here when the camera starts.");
+        diagnostics.setTextColor(0xffb7cadb);
+        diagnostics.setTextSize(13);
+        diagnostics.setTextIsSelectable(true);
+        LinearLayout.LayoutParams diagParams=new LinearLayout.LayoutParams(-1,-2);
+        diagParams.topMargin=18;
+        hud.addView(diagnostics,diagParams);
         setContentView(root);
         watch.requestFocus();
     }
     private void report(String message) {
-        runOnUiThread(() -> { if(!finishing && status!=null) status.setText(message); });
+        runOnUiThread(() -> {
+            if(finishing || status==null)return;
+            if(bridge!=null && !bridge.failure().isEmpty())
+                status.setText("Blink bridge: " + bridge.failure());
+            else if(!playbackIssue.isEmpty())status.setText(playbackIssue);
+            else status.setText(message);
+            updateDiagnostics();
+        });
+    }
+    private void updateDiagnostics() {
+        if(diagnostics!=null && bridge!=null)
+            diagnostics.setText("STREAM DIAGNOSTICS\n" + bridge.diagnostics());
     }
     private void chooseCamera(PlayerView surface) {
         watch.setEnabled(false);
@@ -120,6 +143,11 @@ public final class LiveViewActivity extends Activity {
     }
     private void startCamera(LiveViewApi.Camera camera,PlayerView surface) {
         watch.setEnabled(false);
+        playbackIssue="";
+        // Avoid simultaneous sessions: Blink commonly refuses a camera that is already streaming.
+        if(player!=null){ player.stop(); player.release(); player=null; }
+        if(bridge!=null){ bridge.close(); bridge=null; }
+        surface.setVisibility(View.GONE);
         report("Requesting live view from " + camera.name + "…");
         io.execute(() -> {
             ImmisTvBridge stream=null;
@@ -139,20 +167,36 @@ public final class LiveViewActivity extends Activity {
                     surface.setVisibility(View.VISIBLE);
                     if(player!=null)player.release();
                     player=new ExoPlayer.Builder(this).build();
+                    report("Blink transport: IMMIS · opening TV-local MPEG-TS player");
                     player.addListener(new Player.Listener(){
                         @Override public void onPlaybackStateChanged(int state){
                             if(state==Player.STATE_READY) report("LIVE · " + camera.name + "  ·  Press Back to close");
-                            else if(state==Player.STATE_BUFFERING)report("Buffering camera video…");
+                            else if(state==Player.STATE_BUFFERING && newBridge.failure().isEmpty())
+                                report("Buffering Blink video · checking MPEG-TS frames…");
                             else if(state==Player.STATE_ENDED)report("Live camera session finished");
                         }
                         @Override public void onPlayerError(PlaybackException error) {
-                            report("Video decoder: " + error.getErrorCodeName() +
-                                " · Blink stream may need a different transport");
+                            String bridgeFailure=newBridge.failure();
+                            if(!bridgeFailure.isEmpty()) {
+                                playbackIssue="Blink connection: " + bridgeFailure;
+                            } else if(error.errorCode==PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED) {
+                                playbackIssue="Player did not recognise the MPEG-TS data. Check the sync and packet counters below.";
+                            } else {
+                                playbackIssue="Player error: "+error.getErrorCodeName();
+                            }
+                            report(playbackIssue);
                         }
                     });
                     surface.setPlayer(player);
-                    player.setMediaItem(new MediaItem.Builder().setUri(streamUrl)
-                        .setMimeType(MimeTypes.VIDEO_MP2T).build());
+                    MediaItem item=new MediaItem.Builder().setUri(streamUrl)
+                        .setMimeType(MimeTypes.VIDEO_MP2T).build();
+                    // Blink can take longer than standard HTTP read timeouts to wake.
+                    // Do not mistake a camera handshake delay for a media format error.
+                    DefaultHttpDataSource.Factory source=new DefaultHttpDataSource.Factory()
+                        .setConnectTimeoutMs(15000).setReadTimeoutMs(40000)
+                        .setAllowCrossProtocolRedirects(false);
+                    player.setMediaSource(new ProgressiveMediaSource.Factory(source)
+                        .createMediaSource(item));
                     player.prepare();
                     player.play();
                     watch.setEnabled(true);
